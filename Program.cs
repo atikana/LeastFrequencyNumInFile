@@ -7,32 +7,29 @@ namespace LeastFrequencyNumInFile
 {
     class Program
     {
-        string outputs = "";
-        string directoryPath;
+        private string _outputs = "";
+        private string _directoryPath;
         public Program()
         {
-            this.directoryPath = Directory.GetCurrentDirectory();
+            this._directoryPath = Directory.GetCurrentDirectory();
         }
 
         public void SetFolder(string path)
         {
-            this.directoryPath = path;
+            this._directoryPath = path;
         }
-
 
         private bool FindSRCLocation()
         {
             // loop untill find the parent folder that contains SRC
-
-
-            while (!Directory.Exists(directoryPath + "\\src"))
+            while (!Directory.Exists(_directoryPath + "\\src"))
             {
-                DirectoryInfo directoryInfo = new DirectoryInfo(directoryPath);
+                DirectoryInfo directoryInfo = new(this._directoryPath);
                 if (directoryInfo.Parent != null)
                 {
                     try
                     {
-                        this.directoryPath = Directory.GetParent(this.directoryPath).FullName;
+                        this._directoryPath = Directory.GetParent(this._directoryPath).FullName;
                     }
                     catch (Exception)
                     {
@@ -44,38 +41,22 @@ namespace LeastFrequencyNumInFile
                     return false;
                 }
             }
-            directoryPath += "\\src";
+
+            this._directoryPath += "\\src";
             return true;
 
         }
 
         private void FindLeastFrequentNumberInFolder()
         {
-            string[] files = Directory.GetFiles(this.directoryPath);
+            string[] files = Directory.GetFiles(this._directoryPath);
 
             for (int j = 0; j < files.Length; j++)
             {
-                string line;
-                List<int> nums = new();
                 FileInfo info = new(files[j]);
-                StreamReader reader = new(info.FullName);
+                List<int> nums = ReadFile(info.FullName);
 
-                while ((line = reader.ReadLine()) != null)
-                {
-                    try
-                    {
-                        nums.Add(Int32.Parse(line));
-                    }
-
-                    catch (Exception)
-                    {
-                        Console.WriteLine("can't parse this '{line}' into a string");
-                    }
-                }
-
-                reader.Close();
-
-                // sort the list;
+                //sort the list
                 nums.Sort();
 
                 int count = 1, minCount = nums.Count + 1, minNum = int.MinValue;
@@ -103,25 +84,45 @@ namespace LeastFrequencyNumInFile
                     minNum = nums[nums.Count - 1];
                 }
 
-                outputs += string.Format("{0}: File: {1}, Number: {2}, Repeated: {3} times\n", j + 1, info.Name, minNum, minCount);
+                _outputs += string.Format("{0}: File: {1}, Number: {2}, Repeated: {3} times\n", j + 1, info.Name, minNum, minCount);
+            }
+        }
+
+        private static List<int> ReadFile(string path)
+        {
+            string line;
+            List<int> elements = new List<int>();
+            StreamReader reader = new(path);
+
+            while ((line = reader.ReadLine()) != null)
+            {
+                try
+                {
+                    elements.Add(Int32.Parse(line));
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("can't parse this '{line}' into a string");
+                }
             }
 
+            reader.Close();
+            return elements;
         }
 
         public string GetLeastFrequentNumberInFolder()
         {
-            outputs = "";
+            _outputs = "";
 
             if (FindSRCLocation())
             {
                 FindLeastFrequentNumberInFolder();
             }
 
-            return outputs;
+            return _outputs;
         }
 
-
-        static void Main(string[] args)
+        static void Main()
         {
             Console.Write(new Program().GetLeastFrequentNumberInFolder());
         }
